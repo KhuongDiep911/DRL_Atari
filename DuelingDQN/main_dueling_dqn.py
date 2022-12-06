@@ -7,13 +7,13 @@ if __name__ == '__main__':
     env = make_env('PongNoFrameskip-v4')
     best_score = -np.inf
     load_checkpoint = False
-    n_games = 20
+    n_games = 5000
     agent = DuelingDQNAgent(gamma=0.99, epsilon=1.0, lr=0.0001,
                      input_dims=(env.observation_space.shape),
                      n_actions=env.action_space.n, mem_size=50000, eps_min=0.1,
                      batch_size=32, replace=10000, eps_dec=1e-5,
                      chkpt_dir='models/', algo='DuelingDQNAgent',
-                     env_name='PongNoFrameskip-v4')
+                     env_name='PongNoFrameskip-v4')#'PongNoFrameskip-v4')
 
     if load_checkpoint:
         agent.load_models()
@@ -41,6 +41,7 @@ if __name__ == '__main__':
                 agent.learn()
             observation = observation_
             n_steps += 1
+            env.render()
         scores.append(score)
         steps_array.append(n_steps)
 

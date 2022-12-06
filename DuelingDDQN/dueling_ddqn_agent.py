@@ -2,6 +2,8 @@ import numpy as np
 import torch as T
 from deep_q_network import DuelingDeepQNetwork
 from replay_memory import ReplayBuffer
+import os
+from torch.utils.tensorboard import SummaryWriter
 
 class DuelingDDQNAgent(object):
     def __init__(self, gamma, epsilon, lr, n_actions, input_dims,
@@ -22,6 +24,17 @@ class DuelingDDQNAgent(object):
         self.action_space = [i for i in range(n_actions)]
         self.learn_step_counter = 0
 
+        #=================================================================================================
+        # For naming purpose
+        agent_ = 'PONG-DUELING-' #.format(self.agent_mode) if self.agent_mode!=SIMPLE else ''
+        # network_ = '{}-' #.format(self.network_mode) if self.network_mode!=SIMPLE else ''
+        self.agent_name = f'{agent_}DDQN'.strip()
+        
+        # if not test_mode:
+        self.tensorboard_step = 0
+        self.tensorboard_writer = SummaryWriter(log_dir=f'logs/{self.agent_name}')
+        #=================================================================================================
+
         self.memory = ReplayBuffer(mem_size, input_dims, n_actions)
 
         self.q_eval = DuelingDeepQNetwork(self.lr, self.n_actions,
@@ -32,7 +45,15 @@ class DuelingDDQNAgent(object):
                         input_dims=self.input_dims,
                         name=self.env_name+'_'+self.algo+'_q_next',
                         chkpt_dir=self.chkpt_dir)
-
+    #==============================================================================================
+    def on_epsiode_end(self, reward_avg, reward_min, reward_max, n_steps, i_steps):
+        # if not self.test_mode:
+        self.tensorboard_writer.add_scalar('Reward Avg.', reward_avg, self.tensorboard_step)
+        self.tensorboard_writer.add_scalar('Reward Min.', reward_min, self.tensorboard_step)
+        self.tensorboard_writer.add_scalar('Reward Max.', reward_max, self.tensorboard_step)
+        self.tensorboard_writer.add_scalar('Total Steps', n_steps, self.tensorboard_step)
+        self.tensorboard_writer.add_scalar('Steps per Episode', i_steps, self.tensorboard_step)
+    #==============================================================================================
     def store_transition(self, state, action, reward, state_, done):
         self.memory.store_transition(state, action, reward, state_, done)
 
